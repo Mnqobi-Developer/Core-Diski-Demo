@@ -81,6 +81,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             new Category { Id = 7, Name = "Training T-Shirt" }
         );
 
+
+
+        builder.Entity<Size>().HasData(
+            new Size { Id = 1, Name = "S" },
+            new Size { Id = 2, Name = "M" },
+            new Size { Id = 3, Name = "L" },
+            new Size { Id = 4, Name = "XL" },
+            new Size { Id = 5, Name = "XXL" }
+        );
+
         builder.Entity<Club>().HasData(
             new Club { Id = 1, Name = "Manchester United", LeagueId = 1, Country = "England" },
             new Club { Id = 2, Name = "Arsenal", LeagueId = 1, Country = "England" },

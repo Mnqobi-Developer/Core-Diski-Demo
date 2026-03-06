@@ -1,35 +1,32 @@
-# Football Shirts Store - Admin-First Catalog Setup
+# Football Shirts Store - Current Implementation Snapshot
 
-## What changed
-- Removed all dummy seed data from `ApplicationDbContext`.
-- Added admin authentication flow (`/Account/Login`) using ASP.NET Core Identity.
-- Added automatic admin role/user seeding from configuration (`AdminSeed` section in `appsettings.json`).
-- Added an admin dashboard and simple Bootstrap UI to add:
-  - Leagues
-  - Clubs
-  - Brands
-  - Categories
-- Added admin jersey management screens:
-  - List products
-  - Create product
-  - Edit product
-  - Delete product
+## Admin capabilities
+- Admin login with ASP.NET Core Identity.
+- Admin dashboard and catalog setup pages for leagues, clubs, brands, categories.
+- Admin jersey CRUD with image upload support.
 
-## Why this helps
-The store now starts with an empty catalog so administrators can enter real soccer jerseys and master data directly from the UI, instead of relying on dummy records.
+## Customer shopping flow (new)
+- Public product catalog page with search and filters:
+  - league, club, brand, category/shirt type, size, min/max price.
+- Product details page with stock visibility and add-to-cart action.
+- Session-based cart for customers:
+  - add/update/remove items,
+  - stock-aware quantity checks.
+- Checkout + confirmation flow with South African payment options:
+  - PayFast
+  - Ozow
+  - Yoco
+  - Peach Payments
+  - Manual EFT
 
-## Default admin credentials
-Configure these in `appsettings.json`:
+## Data seeding
+- Master lookup data seeded for:
+  - major European leagues,
+  - South African Betway Premiership,
+  - football kit brands,
+  - categories,
+  - clubs,
+  - standard sizes.
 
-```json
-"AdminSeed": {
-  "Email": "admin@footballstore.com",
-  "Password": "Admin123!"
-}
-```
-
-## Expected flow
-1. Start app.
-2. Login at `/Account/Login`.
-3. Go to `Admin > Catalog Setup` and add leagues, clubs, brands, categories.
-4. Go to `Admin > Manage Jerseys` and add products.
+## Important note
+This environment does not include the `dotnet` SDK, so migrations and runtime validation must be executed locally.

@@ -1,6 +1,7 @@
 using Core_Diski_Demo.Data;
 using Core_Diski_Demo.Data.Seed;
 using Core_Diski_Demo.Models.Entities;
+using Core_Diski_Demo.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,6 +30,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<IdentitySeeder>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICartService, SessionCartService>();
+builder.Services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
+builder.Services.AddSession();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -41,6 +46,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
