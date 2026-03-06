@@ -10,7 +10,7 @@ namespace Core_Diski_Demo.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
-public class ProductsController(ApplicationDbContext dbContext) : Controller
+public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironment environment) : Controller
 {
     public async Task<IActionResult> Index()
     {
@@ -18,6 +18,7 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
             .Include(p => p.Club).ThenInclude(c => c.League)
             .Include(p => p.Brand)
             .Include(p => p.Category)
+            .Include(p => p.Images)
             .OrderByDescending(p => p.Id)
             .ToListAsync();
 
@@ -58,6 +59,24 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
         dbContext.Products.Add(product);
         await dbContext.SaveChangesAsync();
 
+        var imageUrl = await SaveImageAsync(vm.ImageFile);
+        if (imageUrl == "__INVALID__")
+        {
+            await PopulateLookups(vm);
+            return View(vm);
+        }
+
+        if (!string.IsNullOrWhiteSpace(imageUrl))
+        {
+            dbContext.ProductImages.Add(new ProductImage
+            {
+                ProductId = product.Id,
+                ImageUrl = imageUrl,
+                IsPrimary = true
+            });
+            await dbContext.SaveChangesAsync();
+        }
+
         TempData["Success"] = "Product created successfully.";
         return RedirectToAction(nameof(Index));
     }
@@ -65,7 +84,10 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
-        var product = await dbContext.Products.FindAsync(id);
+        var product = await dbContext.Products
+            .Include(p => p.Images)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
         if (product is null)
         {
             return NotFound();
@@ -82,7 +104,8 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
             ShirtType = product.ShirtType,
             ClubId = product.ClubId,
             BrandId = product.BrandId,
-            CategoryId = product.CategoryId
+            CategoryId = product.CategoryId,
+            ExistingImageUrl = product.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
         };
 
         await PopulateLookups(vm);
@@ -99,7 +122,10 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
             return View(vm);
         }
 
-        var product = await dbContext.Products.FindAsync(vm.Id.Value);
+        var product = await dbContext.Products
+            .Include(p => p.Images)
+            .FirstOrDefaultAsync(p => p.Id == vm.Id.Value);
+
         if (product is null)
         {
             return NotFound();
@@ -114,6 +140,28 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
         product.ClubId = vm.ClubId;
         product.BrandId = vm.BrandId;
         product.CategoryId = vm.CategoryId;
+
+        var imageUrl = await SaveImageAsync(vm.ImageFile);
+        if (imageUrl == "__INVALID__")
+        {
+            vm.ExistingImageUrl = product.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl;
+            await PopulateLookups(vm);
+            return View(vm);
+        }
+
+        if (!string.IsNullOrWhiteSpace(imageUrl))
+        {
+            foreach (var image in product.Images)
+            {
+                image.IsPrimary = false;
+            }
+
+            product.Images.Add(new ProductImage
+            {
+                ImageUrl = imageUrl,
+                IsPrimary = true
+            });
+        }
 
         await dbContext.SaveChangesAsync();
         TempData["Success"] = "Product updated successfully.";
@@ -140,8 +188,10 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
     private async Task PopulateLookups(ProductFormViewModel vm)
     {
         vm.Clubs = await dbContext.Clubs
-            .OrderBy(c => c.Name)
-            .Select(c => new SelectListItem(c.Name, c.Id.ToString()))
+            .Include(c => c.League)
+            .OrderBy(c => c.League.Name)
+            .ThenBy(c => c.Name)
+            .Select(c => new SelectListItem($"{c.Name} ({c.League.Name})", c.Id.ToString()))
             .ToListAsync();
 
         vm.Brands = await dbContext.Brands
@@ -153,5 +203,32 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
             .OrderBy(c => c.Name)
             .Select(c => new SelectListItem(c.Name, c.Id.ToString()))
             .ToListAsync();
+    }
+
+    private async Task<string?> SaveImageAsync(IFormFile? imageFile)
+    {
+        if (imageFile is null || imageFile.Length == 0)
+        {
+            return null;
+        }
+
+        var extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+        var allowed = new HashSet<string> { ".jpg", ".jpeg", ".png", ".webp" };
+        if (!allowed.Contains(extension))
+        {
+            ModelState.AddModelError(nameof(ProductFormViewModel.ImageFile), "Only .jpg, .jpeg, .png, and .webp images are allowed.");
+            return "__INVALID__";
+        }
+
+        var uploadsFolder = Path.Combine(environment.WebRootPath, "images", "products");
+        Directory.CreateDirectory(uploadsFolder);
+
+        var uniqueFileName = $"{Guid.NewGuid()}{extension}";
+        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await imageFile.CopyToAsync(stream);
+
+        return $"/images/products/{uniqueFileName}";
     }
 }

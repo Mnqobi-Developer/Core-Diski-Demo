@@ -1,6 +1,6 @@
 @model Core_Diski_Demo.Models.ViewModels.Admin.ProductFormViewModel
 
-<form method="post" class="card shadow-sm">
+<form method="post" enctype="multipart/form-data" class="card shadow-sm">
     <div class="card-body row g-3">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <input asp-for="Id" type="hidden" />
@@ -56,6 +56,20 @@
             <label asp-for="ReleaseSeason" class="form-label"></label>
             <input asp-for="ReleaseSeason" class="form-control" placeholder="2025/26" />
         </div>
+
+        <div class="col-md-4">
+            <label asp-for="ImageFile" class="form-label"></label>
+            <input asp-for="ImageFile" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
+            <span asp-validation-for="ImageFile" class="text-danger"></span>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.ExistingImageUrl))
+        {
+            <div class="col-md-4">
+                <label class="form-label d-block">Current Image</label>
+                <img src="@Model.ExistingImageUrl" alt="Current jersey image" class="img-thumbnail" style="max-height: 140px;" />
+            </div>
+        }
 
         <div class="col-12">
             <label asp-for="Description" class="form-label"></label>

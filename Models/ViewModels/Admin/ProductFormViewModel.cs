@@ -1,4 +1,5 @@
 using Core_Diski_Demo.Models.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
@@ -34,6 +35,11 @@ public class ProductFormViewModel
 
     [Display(Name = "Category"), Range(1, int.MaxValue, ErrorMessage = "Please select a category.")]
     public int CategoryId { get; set; }
+
+    [Display(Name = "Jersey Image")]
+    public IFormFile? ImageFile { get; set; }
+
+    public string? ExistingImageUrl { get; set; }
 
     public List<SelectListItem> Clubs { get; set; } = new();
     public List<SelectListItem> Brands { get; set; } = new();
