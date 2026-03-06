@@ -1,0 +1,70 @@
+@model Core_Diski_Demo.Models.ViewModels.Admin.ProductFormViewModel
+
+<form method="post" class="card shadow-sm">
+    <div class="card-body row g-3">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input asp-for="Id" type="hidden" />
+
+        <div class="col-md-6">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-3">
+            <label asp-for="Price" class="form-label"></label>
+            <input asp-for="Price" class="form-control" />
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-3">
+            <label asp-for="StockQuantity" class="form-label"></label>
+            <input asp-for="StockQuantity" class="form-control" />
+            <span asp-validation-for="StockQuantity" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="ClubId" class="form-label"></label>
+            <select asp-for="ClubId" asp-items="Model.Clubs" class="form-select">
+                <option value="0">Select club...</option>
+            </select>
+            <span asp-validation-for="ClubId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="BrandId" class="form-label"></label>
+            <select asp-for="BrandId" asp-items="Model.Brands" class="form-select">
+                <option value="0">Select brand...</option>
+            </select>
+            <span asp-validation-for="BrandId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="CategoryId" class="form-label"></label>
+            <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                <option value="0">Select category...</option>
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="ShirtType" class="form-label"></label>
+            <select asp-for="ShirtType" asp-items="Html.GetEnumSelectList<Core_Diski_Demo.Models.Entities.ShirtType>()" class="form-select"></select>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="ReleaseSeason" class="form-label"></label>
+            <input asp-for="ReleaseSeason" class="form-control" placeholder="2025/26" />
+        </div>
+
+        <div class="col-12">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+        </div>
+    </div>
+
+    <div class="card-footer d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</form>
