@@ -1,0 +1,22 @@
+@model Core_Diski_Demo.Models.ViewModels.Checkout.CheckoutConfirmationViewModel
+@{
+    ViewData["Title"] = "Order Confirmation";
+}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h1 class="h4 text-success">Order Confirmed</h1>
+        <p class="mb-1"><strong>Reference:</strong> @Model.OrderReference</p>
+        <p class="mb-1"><strong>Total:</strong> @Model.TotalAmount.ToString("C")</p>
+        <p class="mb-1"><strong>Payment Method:</strong> @Model.PaymentMethod</p>
+        <p class="mb-1"><strong>Shipping Address:</strong> @Model.ShippingAddress</p>
+        <p class="mt-3">@Model.Message</p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.GatewayUrl))
+        {
+            <a href="@Model.GatewayUrl" target="_blank" rel="noopener" class="btn btn-success">Open Payment Gateway</a>
+        }
+
+        <a asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary">Continue Shopping</a>
+    </div>
+</div>

@@ -1,0 +1,34 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3">Admin Dashboard</h1>
+    <a asp-area="Admin" asp-controller="Products" asp-action="Create" class="btn btn-primary">Add New Jersey</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm"><div class="card-body">
+            <div class="text-muted">Products</div>
+            <div class="fs-4 fw-bold">@ViewBag.ProductsCount</div>
+        </div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm"><div class="card-body">
+            <div class="text-muted">Leagues</div>
+            <div class="fs-4 fw-bold">@ViewBag.LeaguesCount</div>
+        </div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm"><div class="card-body">
+            <div class="text-muted">Clubs</div>
+            <div class="fs-4 fw-bold">@ViewBag.ClubsCount</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    <a asp-area="Admin" asp-controller="Catalog" asp-action="Index" class="btn btn-outline-secondary">Manage Leagues/Clubs/Brands/Categories</a>
+    <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn btn-outline-dark">Manage Jerseys</a>
+</div>
