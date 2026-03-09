@@ -4,11 +4,11 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3">Shop Soccer Shirts</h1>
-    <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-dark">View Cart</a>
+    <h1 class="section-title h2 mb-0">Latest Football Shirt Drops</h1>
+    <a asp-controller="Cart" asp-action="Index" class="btn btn-store" style="max-width:170px;">View Cart</a>
 </div>
 
-<form method="get" class="card card-body mb-4">
+<form method="get" class="card card-body filter-panel mb-4">
     <div class="row g-2">
         <div class="col-md-3"><input asp-for="Query" class="form-control" placeholder="Search by club, shirt, league, brand..." /></div>
         <div class="col-md-2">
@@ -43,7 +43,7 @@
                 @foreach (var item in Model.Sizes) { <option value="@item.Id">@item.Name</option> }
             </select>
         </div>
-        <div class="col-md-3 d-grid"><button class="btn btn-primary">Apply Filters</button></div>
+        <div class="col-md-3 d-grid"><button class="btn btn-store">Apply Filters</button></div>
         <div class="col-md-3 d-grid"><a asp-action="Index" class="btn btn-outline-secondary">Reset</a></div>
     </div>
 </form>
@@ -56,22 +56,45 @@
 
     @foreach (var product in Model.Products)
     {
-        <div class="col-md-4 col-lg-3">
-            <div class="card h-100 shadow-sm">
-                @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
-                {
-                    <img src="@product.ImageUrl" class="card-img-top" style="height:220px;object-fit:cover;" alt="@product.Name" />
-                }
-                <div class="card-body d-flex flex-column">
-                    <h2 class="h6">@product.Name</h2>
-                    <div class="small text-muted">@product.League • @product.Club • @product.Brand</div>
-                    <div class="mt-2 fw-bold">@product.Price.ToString("C")</div>
-                    <div class="small @(product.StockQuantity > 0 ? "text-success" : "text-danger")">
-                        @(product.StockQuantity > 0 ? $"In stock ({product.StockQuantity})" : "Out of stock")
-                    </div>
-                    <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-sm btn-outline-primary mt-auto">View Details</a>
+        var discount = 20 + (product.Id % 6 * 7);
+        var oldPrice = product.Price + (product.Price * 0.35m);
+
+        <div class="col-md-6 col-lg-4 col-xl-4">
+            <article class="product-store-card h-100">
+                <div class="product-image-wrap">
+                    @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+                    {
+                        <img src="@product.ImageUrl" alt="@product.Name" />
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center" style="height:260px;background:#fff;">No image</div>
+                    }
+
+                    <span class="verified-badge">☑ Verified</span>
+                    <span class="image-badge">@discount% OFF</span>
+                    <span class="quick-chip">⚽ Shop the Look</span>
                 </div>
-            </div>
+
+                <div class="product-body d-flex flex-column">
+                    <h2 class="product-club h4 mb-1">@product.Club</h2>
+                    <div class="product-sub mb-2">@product.Name</div>
+
+                    <div class="meta-tags">
+                        <span>@product.Brand</span>
+                        <span>@product.League</span>
+                        <span>@DateTime.UtcNow.Year/@(DateTime.UtcNow.Year + 1)</span>
+                    </div>
+
+                    <div class="price-main">@product.Price.ToString("C")</div>
+                    <div class="price-old">@oldPrice.ToString("C")</div>
+
+                    <div class="store-line">🗓 Detected: @DateTime.UtcNow:MM/dd/yyyy</div>
+                    <div class="store-line">○ Official: @product.Club.ToLower().Replace(" ", "").com</div>
+
+                    <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-store mt-auto">🛍 Visit Official Store</a>
+                </div>
+            </article>
         </div>
     }
 </div>

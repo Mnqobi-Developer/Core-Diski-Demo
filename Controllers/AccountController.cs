@@ -7,13 +7,13 @@ namespace Core_Diski_Demo.Controllers;
 
 public class AccountController(SignInManager<ApplicationUser> signInManager) : Controller
 {
-    [HttpGet]
+    [HttpGet("/admin-login")]
     public IActionResult Login(string? returnUrl = null)
     {
         return View(new LoginViewModel { ReturnUrl = returnUrl });
     }
 
-    [HttpPost]
+    [HttpPost("/admin-login")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
