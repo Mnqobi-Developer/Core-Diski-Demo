@@ -25,6 +25,11 @@ public class Product
 
     public ShirtType ShirtType { get; set; }
 
+    public bool IsOnSale { get; set; }
+
+    [Range(0, 90)]
+    public int DiscountPercentage { get; set; }
+
     public int ClubId { get; set; }
     public Club Club { get; set; } = null!;
 

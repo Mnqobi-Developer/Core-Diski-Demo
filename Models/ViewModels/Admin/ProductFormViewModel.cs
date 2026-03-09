@@ -27,6 +27,11 @@ public class ProductFormViewModel
     [Required]
     public ShirtType ShirtType { get; set; }
 
+    public bool IsOnSale { get; set; }
+
+    [Range(0, 90)]
+    public int DiscountPercentage { get; set; }
+
     [Display(Name = "Club"), Range(1, int.MaxValue, ErrorMessage = "Please select a club.")]
     public int ClubId { get; set; }
 
@@ -36,10 +41,10 @@ public class ProductFormViewModel
     [Display(Name = "Category"), Range(1, int.MaxValue, ErrorMessage = "Please select a category.")]
     public int CategoryId { get; set; }
 
-    [Display(Name = "Jersey Image")]
-    public IFormFile? ImageFile { get; set; }
+    [Display(Name = "Jersey Images")]
+    public List<IFormFile> ImageFiles { get; set; } = new();
 
-    public string? ExistingImageUrl { get; set; }
+    public List<string> ExistingImageUrls { get; set; } = new();
 
     [Display(Name = "Available Sizes")]
     public List<int> SelectedSizeIds { get; set; } = new();

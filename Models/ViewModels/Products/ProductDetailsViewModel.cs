@@ -12,9 +12,13 @@ public class ProductDetailsViewModel
     public string Category { get; set; } = string.Empty;
     public ShirtType ShirtType { get; set; }
     public decimal Price { get; set; }
+    public bool IsOnSale { get; set; }
+    public int DiscountPercentage { get; set; }
+    public decimal OriginalPrice { get; set; }
     public int StockQuantity { get; set; }
     public string? ReleaseSeason { get; set; }
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
+    public List<string> ImageUrls { get; set; } = new();
     public List<string> Sizes { get; set; } = new();
 }

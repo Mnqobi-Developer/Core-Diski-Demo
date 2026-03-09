@@ -251,3 +251,51 @@ body {
 .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem #fff, 0 0 0 0.25rem rgba(37, 140, 251, .45);
 }
+
+
+.product-preview-grid {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 1rem;
+}
+
+.preview-thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+}
+
+.thumb-btn {
+  border: 1px solid #bfc5bb;
+  border-radius: .55rem;
+  padding: 0;
+  overflow: hidden;
+  background: #fff;
+  cursor: pointer;
+}
+
+.thumb-btn img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  display: block;
+}
+
+.thumb-btn.active {
+  border: 2px solid #1f4f77;
+}
+
+.preview-main {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #d0c7ae;
+  background: #fff;
+}
+
+.preview-main img {
+  width: 100%;
+  height: 560px;
+  object-fit: cover;
+  display: block;
+}

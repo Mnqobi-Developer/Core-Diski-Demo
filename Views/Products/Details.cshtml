@@ -3,53 +3,98 @@
     ViewData["Title"] = Model.Name;
 }
 
-<div class="product-store-card p-3">
-    <div class="row g-4">
-        <div class="col-md-5">
-            @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
-            {
-                <div class="product-image-wrap m-0">
-                    <img src="@Model.ImageUrl" class="img-fluid" alt="@Model.Name" />
-                    <span class="verified-badge">☑ Verified</span>
+<div class="container px-4">
+    <div class="product-store-card p-3">
+        <div class="row g-4">
+            <div class="col-md-7">
+                <div class="product-preview-grid">
+                    <div class="preview-thumbs">
+                        @if (Model.ImageUrls.Any())
+                        {
+                            for (var i = 0; i < Model.ImageUrls.Count; i++)
+                            {
+                                <button type="button" class="thumb-btn @(i == 0 ? "active" : string.Empty)" data-img="@Model.ImageUrls[i]">
+                                    <img src="@Model.ImageUrls[i]" alt="@Model.Name image @(i + 1)" />
+                                </button>
+                            }
+                        }
+                    </div>
+
+                    <div class="preview-main">
+                        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                        {
+                            <img id="mainPreviewImage" src="@Model.ImageUrl" class="img-fluid" alt="@Model.Name" />
+                            <span class="verified-badge">☑ Verified</span>
+                            @if (Model.IsOnSale && Model.DiscountPercentage > 0)
+                            {
+                                <span class="image-badge">@Model.DiscountPercentage% OFF</span>
+                            }
+                        }
+                        else
+                        {
+                            <div class="bg-light border rounded d-flex align-items-center justify-content-center" style="height:520px;">No Image</div>
+                        }
+                    </div>
                 </div>
-            }
-            else
-            {
-                <div class="bg-light border rounded d-flex align-items-center justify-content-center" style="height:360px;">No Image</div>
-            }
-        </div>
-        <div class="col-md-7">
-            <h1 class="product-club">@Model.Name</h1>
-            <p class="text-muted">@Model.League • @Model.Club • @Model.Brand</p>
-            <p><strong>Type:</strong> @Model.ShirtType | <strong>Category:</strong> @Model.Category | <strong>Season:</strong> @Model.ReleaseSeason</p>
-            <p><strong>Available sizes:</strong> @(Model.Sizes.Any() ? string.Join(", ", Model.Sizes) : "Not specified")</p>
-            <p><strong>Price:</strong> <span class="price-main">@Model.Price.ToString("C")</span></p>
-            <p class="@(Model.StockQuantity > 0 ? "text-success" : "text-danger")">
-                @(Model.StockQuantity > 0 ? $"In stock ({Model.StockQuantity})" : "Out of stock")
-            </p>
+            </div>
 
-            <p>@Model.Description</p>
+            <div class="col-md-5">
+                <h1 class="product-club">@Model.Name</h1>
+                <p class="text-muted">@Model.League • @Model.Club • @Model.Brand</p>
+                <p><strong>Type:</strong> @Model.ShirtType | <strong>Category:</strong> @Model.Category | <strong>Season:</strong> @Model.ReleaseSeason</p>
+                <p><strong>Available sizes:</strong> @(Model.Sizes.Any() ? string.Join(", ", Model.Sizes) : "Not specified")</p>
 
-            @if (Model.StockQuantity > 0)
-            {
-                if (User.Identity?.IsAuthenticated == true)
+                <p>
+                    <strong>Price:</strong>
+                    <span class="price-main">@Model.Price.ToString("C")</span>
+                    @if (Model.IsOnSale && Model.DiscountPercentage > 0)
+                    {
+                        <span class="price-old ms-2">@Model.OriginalPrice.ToString("C")</span>
+                    }
+                </p>
+
+                <p class="@(Model.StockQuantity > 0 ? "text-success" : "text-danger")">
+                    @(Model.StockQuantity > 0 ? $"In stock ({Model.StockQuantity})" : "Out of stock")
+                </p>
+
+                <p>@Model.Description</p>
+
+                @if (Model.StockQuantity > 0)
                 {
-                    <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex gap-2 align-items-center">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="productId" value="@Model.Id" />
-                        <input type="number" name="quantity" value="1" min="1" max="@Model.StockQuantity" class="form-control" style="max-width:120px;" />
-                        <button class="btn btn-store" style="max-width:180px;">Add to Cart</button>
-                    </form>
+                    if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex gap-2 align-items-center">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productId" value="@Model.Id" />
+                            <input type="number" name="quantity" value="1" min="1" max="@Model.StockQuantity" class="form-control" style="max-width:120px;" />
+                            <button class="btn btn-store" style="max-width:220px;">Add to Cart</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a href="/sign-in?returnUrl=@Uri.EscapeDataString(Context.Request.Path)" class="btn btn-store" style="max-width:280px;">Sign in to add to cart</a>
+                    }
                 }
                 else
                 {
-                    <a href="/sign-in?returnUrl=@Uri.EscapeDataString(Context.Request.Path)" class="btn btn-store" style="max-width:280px;">Sign in to add to cart</a>
+                    <button class="btn btn-secondary" disabled>Out of stock</button>
                 }
-            }
-            else
-            {
-                <button class="btn btn-secondary" disabled>Out of stock</button>
-            }
+            </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.thumb-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const img = document.getElementById('mainPreviewImage');
+                if (!img) return;
+
+                img.src = btn.dataset.img;
+                document.querySelectorAll('.thumb-btn').forEach(x => x.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+    </script>
+}

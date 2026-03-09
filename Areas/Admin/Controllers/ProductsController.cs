@@ -37,12 +37,16 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ProductFormViewModel vm)
     {
-        if (!vm.SelectedSizeIds.Any())
-        {
-            ModelState.AddModelError(nameof(ProductFormViewModel.SelectedSizeIds), "Select at least one available size.");
-        }
+        ValidateBusinessRules(vm, existingImageCount: 0);
 
         if (!ModelState.IsValid)
+        {
+            await PopulateLookups(vm);
+            return View(vm);
+        }
+
+        var images = await SaveImagesAsync(vm.ImageFiles);
+        if (images is null)
         {
             await PopulateLookups(vm);
             return View(vm);
@@ -56,6 +60,8 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
             Description = vm.Description,
             ReleaseSeason = vm.ReleaseSeason,
             ShirtType = vm.ShirtType,
+            IsOnSale = vm.IsOnSale,
+            DiscountPercentage = vm.IsOnSale ? vm.DiscountPercentage : 0,
             ClubId = vm.ClubId,
             BrandId = vm.BrandId,
             CategoryId = vm.CategoryId
@@ -74,20 +80,13 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
             });
         }
 
-        var imageUrl = await SaveImageAsync(vm.ImageFile);
-        if (imageUrl == "__INVALID__")
-        {
-            await PopulateLookups(vm);
-            return View(vm);
-        }
-
-        if (!string.IsNullOrWhiteSpace(imageUrl))
+        for (var i = 0; i < images.Count; i++)
         {
             dbContext.ProductImages.Add(new ProductImage
             {
                 ProductId = product.Id,
-                ImageUrl = imageUrl,
-                IsPrimary = true
+                ImageUrl = images[i],
+                IsPrimary = i == 0
             });
         }
 
@@ -119,10 +118,12 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
             Description = product.Description,
             ReleaseSeason = product.ReleaseSeason,
             ShirtType = product.ShirtType,
+            IsOnSale = product.IsOnSale,
+            DiscountPercentage = product.DiscountPercentage,
             ClubId = product.ClubId,
             BrandId = product.BrandId,
             CategoryId = product.CategoryId,
-            ExistingImageUrl = product.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl,
+            ExistingImageUrls = product.Images.OrderByDescending(i => i.IsPrimary).Select(i => i.ImageUrl).ToList(),
             SelectedSizeIds = product.ProductSizes.Select(ps => ps.SizeId).ToList()
         };
 
@@ -134,15 +135,9 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ProductFormViewModel vm)
     {
-        if (!vm.SelectedSizeIds.Any())
+        if (vm.Id is null)
         {
-            ModelState.AddModelError(nameof(ProductFormViewModel.SelectedSizeIds), "Select at least one available size.");
-        }
-
-        if (!ModelState.IsValid || vm.Id is null)
-        {
-            await PopulateLookups(vm);
-            return View(vm);
+            return NotFound();
         }
 
         var product = await dbContext.Products
@@ -155,12 +150,23 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
             return NotFound();
         }
 
+        vm.ExistingImageUrls = product.Images.OrderByDescending(i => i.IsPrimary).Select(i => i.ImageUrl).ToList();
+        ValidateBusinessRules(vm, existingImageCount: vm.ExistingImageUrls.Count);
+
+        if (!ModelState.IsValid)
+        {
+            await PopulateLookups(vm);
+            return View(vm);
+        }
+
         product.Name = vm.Name.Trim();
         product.Price = vm.Price;
         product.StockQuantity = vm.StockQuantity;
         product.Description = vm.Description;
         product.ReleaseSeason = vm.ReleaseSeason;
         product.ShirtType = vm.ShirtType;
+        product.IsOnSale = vm.IsOnSale;
+        product.DiscountPercentage = vm.IsOnSale ? vm.DiscountPercentage : 0;
         product.ClubId = vm.ClubId;
         product.BrandId = vm.BrandId;
         product.CategoryId = vm.CategoryId;
@@ -190,26 +196,25 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
             productSize.QuantityInStock = vm.StockQuantity;
         }
 
-        var imageUrl = await SaveImageAsync(vm.ImageFile);
-        if (imageUrl == "__INVALID__")
+        var images = await SaveImagesAsync(vm.ImageFiles);
+        if (images is null)
         {
-            vm.ExistingImageUrl = product.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl;
             await PopulateLookups(vm);
             return View(vm);
         }
 
-        if (!string.IsNullOrWhiteSpace(imageUrl))
+        if (images.Any())
         {
-            foreach (var image in product.Images)
+            var hasPrimary = product.Images.Any(i => i.IsPrimary);
+            foreach (var imageUrl in images)
             {
-                image.IsPrimary = false;
+                product.Images.Add(new ProductImage
+                {
+                    ImageUrl = imageUrl,
+                    IsPrimary = !hasPrimary
+                });
+                hasPrimary = true;
             }
-
-            product.Images.Add(new ProductImage
-            {
-                ImageUrl = imageUrl,
-                IsPrimary = true
-            });
         }
 
         await dbContext.SaveChangesAsync();
@@ -232,6 +237,27 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
         await dbContext.SaveChangesAsync();
         TempData["Success"] = "Product deleted.";
         return RedirectToAction(nameof(Index));
+    }
+
+
+    private void ValidateBusinessRules(ProductFormViewModel vm, int existingImageCount)
+    {
+        if (!vm.SelectedSizeIds.Any())
+        {
+            ModelState.AddModelError(nameof(ProductFormViewModel.SelectedSizeIds), "Select at least one available size.");
+        }
+
+        if (vm.IsOnSale && vm.DiscountPercentage <= 0)
+        {
+            ModelState.AddModelError(nameof(ProductFormViewModel.DiscountPercentage), "Enter a discount % greater than 0 when item is on sale.");
+        }
+
+        var uploadedCount = vm.ImageFiles?.Count(f => f is { Length: > 0 }) ?? 0;
+        var total = existingImageCount + uploadedCount;
+        if (total < 3 || total > 5)
+        {
+            ModelState.AddModelError(nameof(ProductFormViewModel.ImageFiles), "Each jersey must have between 3 and 5 images in total.");
+        }
     }
 
     private async Task PopulateLookups(ProductFormViewModel vm)
@@ -259,30 +285,33 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
             .ToListAsync();
     }
 
-    private async Task<string?> SaveImageAsync(IFormFile? imageFile)
+    private async Task<List<string>?> SaveImagesAsync(List<IFormFile> imageFiles)
     {
-        if (imageFile is null || imageFile.Length == 0)
+        var files = imageFiles.Where(f => f is { Length: > 0 }).ToList();
+        var urls = new List<string>();
+
+        foreach (var imageFile in files)
         {
-            return null;
+            var extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+            var allowed = new HashSet<string> { ".jpg", ".jpeg", ".png", ".webp" };
+            if (!allowed.Contains(extension))
+            {
+                ModelState.AddModelError(nameof(ProductFormViewModel.ImageFiles), "Only .jpg, .jpeg, .png, and .webp images are allowed.");
+                return null;
+            }
+
+            var uploadsFolder = Path.Combine(environment.WebRootPath, "images", "products");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = $"{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            await using var stream = new FileStream(filePath, FileMode.Create);
+            await imageFile.CopyToAsync(stream);
+
+            urls.Add($"/images/products/{uniqueFileName}");
         }
 
-        var extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
-        var allowed = new HashSet<string> { ".jpg", ".jpeg", ".png", ".webp" };
-        if (!allowed.Contains(extension))
-        {
-            ModelState.AddModelError(nameof(ProductFormViewModel.ImageFile), "Only .jpg, .jpeg, .png, and .webp images are allowed.");
-            return "__INVALID__";
-        }
-
-        var uploadsFolder = Path.Combine(environment.WebRootPath, "images", "products");
-        Directory.CreateDirectory(uploadsFolder);
-
-        var uniqueFileName = $"{Guid.NewGuid()}{extension}";
-        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-        await using var stream = new FileStream(filePath, FileMode.Create);
-        await imageFile.CopyToAsync(stream);
-
-        return $"/images/products/{uniqueFileName}";
+        return urls;
     }
 }

@@ -16,6 +16,8 @@
             <th>League/Club</th>
             <th>Brand</th>
             <th>Price</th>
+            <th>Sale</th>
+            <th>Images</th>
             <th>Stock</th>
             <th>Type</th>
             <th></th>
@@ -40,6 +42,17 @@
                 <td>@product.Club.League.Name / @product.Club.Name</td>
                 <td>@product.Brand.Name</td>
                 <td>@product.Price.ToString("C")</td>
+                <td>
+                    @if (product.IsOnSale && product.DiscountPercentage > 0)
+                    {
+                        <span class="badge bg-danger">@product.DiscountPercentage% OFF</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">No</span>
+                    }
+                </td>
+                <td>@product.Images.Count</td>
                 <td>@product.StockQuantity</td>
                 <td>@product.ShirtType</td>
                 <td class="text-nowrap">

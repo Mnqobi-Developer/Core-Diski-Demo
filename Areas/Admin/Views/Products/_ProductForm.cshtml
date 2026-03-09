@@ -57,10 +57,24 @@
             <input asp-for="ReleaseSeason" class="form-control" placeholder="2025/26" />
         </div>
 
+        <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check">
+                <input asp-for="IsOnSale" class="form-check-input" />
+                <label asp-for="IsOnSale" class="form-check-label">On Sale</label>
+            </div>
+        </div>
+
         <div class="col-md-4">
-            <label asp-for="ImageFile" class="form-label"></label>
-            <input asp-for="ImageFile" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
-            <span asp-validation-for="ImageFile" class="text-danger"></span>
+            <label asp-for="DiscountPercentage" class="form-label">Discount %</label>
+            <input asp-for="DiscountPercentage" class="form-control" min="0" max="90" />
+            <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-8">
+            <label asp-for="ImageFiles" class="form-label">Jersey Images (3 to 5)</label>
+            <input asp-for="ImageFiles" class="form-control" type="file" accept=".jpg,.jpeg,.png,.webp" multiple />
+            <span asp-validation-for="ImageFiles" class="text-danger"></span>
+            <small class="text-muted">Upload between 3 and 5 images in total. First image becomes the preview image.</small>
         </div>
 
         <div class="col-12">
@@ -79,11 +93,16 @@
             <span asp-validation-for="SelectedSizeIds" class="text-danger"></span>
         </div>
 
-        @if (!string.IsNullOrWhiteSpace(Model.ExistingImageUrl))
+        @if (Model.ExistingImageUrls.Any())
         {
-            <div class="col-md-4">
-                <label class="form-label d-block">Current Image</label>
-                <img src="@Model.ExistingImageUrl" alt="Current jersey image" class="img-thumbnail" style="max-height: 140px;" />
+            <div class="col-12">
+                <label class="form-label d-block">Current Images (@Model.ExistingImageUrls.Count)</label>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var url in Model.ExistingImageUrls)
+                    {
+                        <img src="@url" alt="jersey image" class="img-thumbnail" style="height:90px;width:90px;object-fit:cover;" />
+                    }
+                </div>
             </div>
         }
 

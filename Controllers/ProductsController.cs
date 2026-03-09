@@ -53,7 +53,10 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
                 Club = p.Club.Name,
                 League = p.Club.League.Name,
                 Brand = p.Brand.Name,
-                Price = p.Price,
+                Price = p.IsOnSale && p.DiscountPercentage > 0 ? p.Price * (1 - (decimal)p.DiscountPercentage / 100) : p.Price,
+                OriginalPrice = p.Price,
+                IsOnSale = p.IsOnSale,
+                DiscountPercentage = p.DiscountPercentage,
                 StockQuantity = p.StockQuantity,
                 ImageUrl = p.Images.Where(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault()
             })
@@ -83,6 +86,11 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
         if (product is null)
             return NotFound();
 
+        var orderedImages = product.Images.OrderByDescending(i => i.IsPrimary).ThenBy(i => i.Id).Select(i => i.ImageUrl).ToList();
+        var discounted = product.IsOnSale && product.DiscountPercentage > 0
+            ? product.Price * (1 - (decimal)product.DiscountPercentage / 100)
+            : product.Price;
+
         var vm = new ProductDetailsViewModel
         {
             Id = product.Id,
@@ -92,11 +100,15 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
             Brand = product.Brand.Name,
             Category = product.Category.Name,
             ShirtType = product.ShirtType,
-            Price = product.Price,
+            Price = discounted,
+            OriginalPrice = product.Price,
+            IsOnSale = product.IsOnSale,
+            DiscountPercentage = product.DiscountPercentage,
             StockQuantity = product.StockQuantity,
             ReleaseSeason = product.ReleaseSeason,
             Description = product.Description,
-            ImageUrl = product.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl,
+            ImageUrl = orderedImages.FirstOrDefault(),
+            ImageUrls = orderedImages,
             Sizes = product.ProductSizes.Select(ps => ps.Size.Name).OrderBy(x => x).ToList()
         };
 

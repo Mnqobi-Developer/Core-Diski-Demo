@@ -27,6 +27,9 @@ public class ProductCardViewModel
     public string League { get; set; } = string.Empty;
     public string Brand { get; set; } = string.Empty;
     public decimal Price { get; set; }
+    public bool IsOnSale { get; set; }
+    public int DiscountPercentage { get; set; }
+    public decimal OriginalPrice { get; set; }
     public int StockQuantity { get; set; }
     public string? ImageUrl { get; set; }
 }
