@@ -11,10 +11,11 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark main-navbar mb-4">
+        <nav class="navbar navbar-expand-lg navbar-dark main-navbar mb-0">
             <div class="container-fluid px-4">
                 <a class="brand-block" asp-area="" asp-controller="Home" asp-action="Index">
-                    <span class="brand-logo">⚽</span>
+                    <img src="~/images/branding/corediski-logo.png" alt="Core Diski" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
+                    <span class="brand-logo-fallback">⚽</span>
                     <span class="brand-text">
                         <strong>CORE DISKI</strong>
                         <small>Authentic Football Shirts</small>
@@ -38,6 +39,7 @@
                         <span class="utility-icon">♡</span>
                         <span class="utility-icon">⚑</span>
                         <span class="utility-icon">⚙</span>
+                        <span class="utility-icon">◎</span>
                     </div>
 
                     @if (User.Identity?.IsAuthenticated == true)
@@ -68,7 +70,7 @@
         </nav>
     </header>
 
-    <div class="container-fluid px-4">
+    <div class="container-fluid px-0">
         <partial name="_Alerts" />
         <main role="main" class="pb-3">
             @RenderBody()

@@ -2,11 +2,69 @@
     ViewData["Title"] = "Home";
 }
 
-<section class="hero-panel mb-4">
-    <h1 class="display-5 store-title">Authentic Football Shirts, Premium Matchday Style</h1>
-    <p class="col-lg-8 fs-5 text-muted">Discover elite club jerseys, retro classics, and top South African fan favourites. Built for football lovers who want style and authenticity.</p>
-    <div class="d-flex gap-2">
-        <a asp-controller="Products" asp-action="Index" class="btn btn-store px-4" style="max-width:220px;">Shop the Collection</a>
-        <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-dark px-4">View Cart</a>
+<section class="hero-corediski">
+    <div class="container hero-inner">
+        <img src="~/images/branding/corediski-logo.png" alt="Core Diski Logo" class="hero-logo" onerror="this.style.display='none';" />
+
+        <h1 class="hero-title">Authentic Football Shirts</h1>
+        <p class="hero-copy">Discover rare, verified jerseys from every club and nation worldwide.</p>
+        <p class="hero-copy-2">Heritage. Authenticity. Passion.</p>
+
+        <form asp-controller="Products" asp-action="Index" method="get" class="hero-search-wrap">
+            <div class="row g-2 align-items-center m-0">
+                <div class="col-lg-9">
+                    <input class="hero-search" type="text" name="Query" placeholder="Search teams, leagues, or players..." />
+                </div>
+                <div class="col-lg-3 d-grid">
+                    <button type="submit" class="btn-hero-search">Search</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="hero-popular">
+            Popular:
+            <a asp-controller="Products" asp-action="Index" asp-route-Query="Manchester United">Manchester United</a>
+            <a asp-controller="Products" asp-action="Index" asp-route-Query="Barcelona">Barcelona</a>
+            <a asp-controller="Products" asp-action="Index" asp-route-Query="Bafana Bafana">Bafana Bafana</a>
+            <a asp-controller="Products" asp-action="Index" asp-route-Query="Real Madrid">Real Madrid</a>
+            <a asp-controller="Products" asp-action="Index" asp-route-Query="PSG">PSG</a>
+        </div>
+
+        <div class="row g-3 hero-features">
+            <div class="col-md-4">
+                <div class="hero-feature-card">
+                    <div class="hero-feature-icon">✪</div>
+                    <div>
+                        <p class="hero-feature-title">Verified Authentic</p>
+                        <p class="hero-feature-sub">Every shirt authenticated before sale</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hero-feature-card">
+                    <div class="hero-feature-icon">▣</div>
+                    <div>
+                        <p class="hero-feature-title">Global Shipping</p>
+                        <p class="hero-feature-sub">Delivered worldwide with tracking</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hero-feature-card">
+                    <div class="hero-feature-icon">🛡</div>
+                    <div>
+                        <p class="hero-feature-title">Secure Payments</p>
+                        <p class="hero-feature-sub">Bank-grade encryption & protection</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="section-title h3 mb-0">Featured Collections</h2>
+        <a asp-controller="Products" asp-action="Index" class="btn btn-store" style="max-width:220px;">Shop All Shirts</a>
     </div>
 </section>
