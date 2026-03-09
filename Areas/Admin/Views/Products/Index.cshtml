@@ -1,0 +1,68 @@
+@model IEnumerable<Core_Diski_Demo.Models.Entities.Product>
+@{
+    ViewData["Title"] = "Manage Jerseys";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3">Manage Jerseys</h1>
+    <a asp-action="Create" class="btn btn-primary">Add Jersey</a>
+</div>
+
+<table class="table table-striped table-bordered align-middle">
+    <thead>
+        <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>League/Club</th>
+            <th>Brand</th>
+            <th>Price</th>
+            <th>Sale</th>
+            <th>Images</th>
+            <th>Stock</th>
+            <th>Type</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            var imageUrl = product.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl;
+            <tr>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(imageUrl))
+                    {
+                        <img src="@imageUrl" alt="@product.Name" class="img-thumbnail" style="width:64px;height:64px;object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <span class="text-muted small">No image</span>
+                    }
+                </td>
+                <td>@product.Name</td>
+                <td>@product.Club.League.Name / @product.Club.Name</td>
+                <td>@product.Brand.Name</td>
+                <td>@product.Price.ToString("C")</td>
+                <td>
+                    @if (product.IsOnSale && product.DiscountPercentage > 0)
+                    {
+                        <span class="badge bg-danger">@product.DiscountPercentage% OFF</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">No</span>
+                    }
+                </td>
+                <td>@product.Images.Count</td>
+                <td>@product.StockQuantity</td>
+                <td>@product.ShirtType</td>
+                <td class="text-nowrap">
+                    <a asp-action="Edit" asp-route-id="@product.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <form asp-action="Delete" asp-route-id="@product.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this product?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

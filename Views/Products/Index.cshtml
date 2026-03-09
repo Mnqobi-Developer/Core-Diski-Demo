@@ -1,0 +1,105 @@
+@model Core_Diski_Demo.Models.ViewModels.Products.ProductIndexViewModel
+@{
+    ViewData["Title"] = "Shop Soccer Shirts";
+}
+
+<div class="container px-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="section-title h2 mb-0">Latest Football Shirt Drops</h1>
+        <a asp-controller="Cart" asp-action="Index" class="btn btn-store" style="max-width:170px;">View Cart</a>
+    </div>
+
+    <form method="get" class="card card-body filter-panel mb-4">
+        <div class="row g-2">
+            <div class="col-md-3"><input asp-for="Query" class="form-control" placeholder="Search by club, shirt, league, brand..." /></div>
+            <div class="col-md-2">
+                <select asp-for="LeagueId" class="form-select">
+                    <option value="">All leagues</option>
+                    @foreach (var item in Model.Leagues) { <option value="@item.Id">@item.Name</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select asp-for="ClubId" class="form-select">
+                    <option value="">All clubs</option>
+                    @foreach (var item in Model.Clubs) { <option value="@item.Id">@item.Name</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select asp-for="BrandId" class="form-select">
+                    <option value="">All brands</option>
+                    @foreach (var item in Model.Brands) { <option value="@item.Id">@item.Name</option> }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select asp-for="CategoryId" class="form-select">
+                    <option value="">All shirt types</option>
+                    @foreach (var item in Model.Categories) { <option value="@item.Id">@item.Name</option> }
+                </select>
+            </div>
+            <div class="col-md-2"><input asp-for="MinPrice" class="form-control" placeholder="Min price" /></div>
+            <div class="col-md-2"><input asp-for="MaxPrice" class="form-control" placeholder="Max price" /></div>
+            <div class="col-md-2">
+                <select asp-for="SizeId" class="form-select">
+                    <option value="">All sizes</option>
+                    @foreach (var item in Model.Sizes) { <option value="@item.Id">@item.Name</option> }
+                </select>
+            </div>
+            <div class="col-md-3 d-grid"><button class="btn btn-store">Apply Filters</button></div>
+            <div class="col-md-3 d-grid"><a asp-action="Index" class="btn btn-outline-secondary">Reset</a></div>
+        </div>
+    </form>
+
+    <div class="row g-3">
+        @if (!Model.Products.Any())
+        {
+            <div class="col-12"><div class="alert alert-info">No shirts found with the selected filters.</div></div>
+        }
+
+        @foreach (var product in Model.Products)
+        {
+            <div class="col-md-6 col-lg-4 col-xl-4">
+                <article class="product-store-card h-100">
+                    <div class="product-image-wrap">
+                        @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+                        {
+                            <img src="@product.ImageUrl" alt="@product.Name" />
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center justify-content-center" style="height:260px;background:#fff;">No image</div>
+                        }
+
+                        <span class="verified-badge">☑ Verified</span>
+                        @if (product.IsOnSale && product.DiscountPercentage > 0)
+                        {
+                            <span class="image-badge">@product.DiscountPercentage% OFF</span>
+                        }
+                        <span class="quick-chip">⚽ Shop the Look</span>
+                    </div>
+
+                    <div class="product-body d-flex flex-column">
+                        <h2 class="product-club h4 mb-1">@product.Club</h2>
+                        <div class="product-sub mb-2">@product.Name</div>
+
+                        <div class="meta-tags">
+                            <span>@product.Brand</span>
+                            <span>@product.League</span>
+                            <span>@DateTime.UtcNow.Year/@(DateTime.UtcNow.Year + 1)</span>
+                        </div>
+
+                        <div class="price-main">@product.Price.ToString("C")</div>
+                        @if (product.IsOnSale && product.DiscountPercentage > 0)
+                        {
+                            <div class="price-old">@product.OriginalPrice.ToString("C")</div>
+                        }
+
+                        <div class="store-line">🗓 Detected: @DateTime.UtcNow:MM/dd/yyyy</div>
+                        <div class="store-line">○ Official: @product.Club.ToLower().Replace(" ", "").com</div>
+
+                        <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-store mt-auto">🛍 Visit Official Store</a>
+                    </div>
+                </article>
+            </div>
+        }
+    </div>
+</div>
