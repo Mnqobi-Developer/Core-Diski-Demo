@@ -1,0 +1,71 @@
+@model Core_Diski_Demo.Models.ViewModels.Cart.CartViewModel
+@{
+    ViewData["Title"] = "Your Cart";
+}
+
+<h1 class="h3 mb-3">Your Cart</h1>
+
+@if (!Model.Items.Any())
+{
+    <div class="alert alert-info">Your cart is empty. <a asp-controller="Products" asp-action="Index">Browse shirts</a>.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th style="width:170px;">Quantity</th>
+                    <th>Subtotal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex gap-3 align-items-center">
+                                @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" style="width:64px;height:64px;object-fit:cover;" class="img-thumbnail" alt="@item.ProductName" />
+                                }
+                                <div>
+                                    <strong>@item.ProductName</strong><br />
+                                    <span class="small text-muted">@item.LeagueName • @item.ClubName</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>@item.UnitPrice.ToString("C")</td>
+                        <td>
+                            <form asp-action="Update" method="post" class="d-flex gap-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <input type="number" name="quantity" value="@item.Quantity" min="1" max="@item.AvailableStock" class="form-control form-control-sm" />
+                                <button class="btn btn-sm btn-outline-primary">Update</button>
+                            </form>
+                        </td>
+                        <td>@item.Subtotal.ToString("C")</td>
+                        <td>
+                            <form asp-action="Remove" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <button class="btn btn-sm btn-outline-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <a asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary">Continue Shopping</a>
+        <div class="text-end">
+            <div class="h5 mb-2">Total: @Model.TotalAmount.ToString("C")</div>
+            <a asp-controller="Checkout" asp-action="Index" class="btn btn-success">Proceed to Checkout</a>
+        </div>
+    </div>
+}
