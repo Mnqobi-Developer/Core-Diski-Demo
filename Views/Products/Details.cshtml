@@ -32,12 +32,19 @@
 
             @if (Model.StockQuantity > 0)
             {
-                <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex gap-2 align-items-center">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="productId" value="@Model.Id" />
-                    <input type="number" name="quantity" value="1" min="1" max="@Model.StockQuantity" class="form-control" style="max-width:120px;" />
-                    <button class="btn btn-store" style="max-width:180px;">Add to Cart</button>
-                </form>
+                if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex gap-2 align-items-center">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@Model.Id" />
+                        <input type="number" name="quantity" value="1" min="1" max="@Model.StockQuantity" class="form-control" style="max-width:120px;" />
+                        <button class="btn btn-store" style="max-width:180px;">Add to Cart</button>
+                    </form>
+                }
+                else
+                {
+                    <a href="/sign-in?returnUrl=@Uri.EscapeDataString(Context.Request.Path)" class="btn btn-store" style="max-width:280px;">Sign in to add to cart</a>
+                }
             }
             else
             {

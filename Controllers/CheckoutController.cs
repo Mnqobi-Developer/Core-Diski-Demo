@@ -1,14 +1,27 @@
+using Core_Diski_Demo.Models.Entities;
+using Core_Diski_Demo.Models.ViewModels.Checkout;
+using Core_Diski_Demo.Services;
+using Microsoft.AspNetCore.Identity;
 using Core_Diski_Demo.Models.ViewModels.Checkout;
 using Core_Diski_Demo.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Core_Diski_Demo.Controllers;
 
-public class CheckoutController(ICartService cartService, IPaymentGatewayService paymentGatewayService) : Controller
+public class CheckoutController(
+    ICartService cartService,
+    IPaymentGatewayService paymentGatewayService,
+    UserManager<ApplicationUser> userManager) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index()
     {
+        var access = await EnsureVerifiedUserAsync();
+        if (access is not null)
+        {
+            return access;
+        }
+
         var cart = await cartService.GetCartAsync();
         if (!cart.Items.Any())
         {
@@ -23,6 +36,12 @@ public class CheckoutController(ICartService cartService, IPaymentGatewayService
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index(CheckoutViewModel vm)
     {
+        var access = await EnsureVerifiedUserAsync();
+        if (access is not null)
+        {
+            return access;
+        }
+
         var cart = await cartService.GetCartAsync();
         if (!cart.Items.Any())
         {
@@ -70,5 +89,23 @@ public class CheckoutController(ICartService cartService, IPaymentGatewayService
         }
 
         return View(vm);
+    }
+
+    private async Task<IActionResult?> EnsureVerifiedUserAsync()
+    {
+        if (!User.Identity?.IsAuthenticated ?? true)
+        {
+            TempData["Error"] = "Please sign in to access checkout.";
+            return Redirect($"/sign-in?returnUrl={Uri.EscapeDataString(Request.Path)}");
+        }
+
+        var user = await userManager.GetUserAsync(User);
+        if (user is null || !user.EmailConfirmed)
+        {
+            TempData["Error"] = "Please verify your email before checkout.";
+            return Redirect($"/sign-in?returnUrl={Uri.EscapeDataString(Request.Path)}");
+        }
+
+        return null;
     }
 }
