@@ -41,7 +41,11 @@ public class ProductFormViewModel
 
     public string? ExistingImageUrl { get; set; }
 
+    [Display(Name = "Available Sizes")]
+    public List<int> SelectedSizeIds { get; set; } = new();
+
     public List<SelectListItem> Clubs { get; set; } = new();
     public List<SelectListItem> Brands { get; set; } = new();
     public List<SelectListItem> Categories { get; set; } = new();
+    public List<SelectListItem> Sizes { get; set; } = new();
 }

@@ -63,6 +63,22 @@
             <span asp-validation-for="ImageFile" class="text-danger"></span>
         </div>
 
+        <div class="col-12">
+            <label class="form-label">Available Sizes</label>
+            <div class="d-flex flex-wrap gap-3">
+                @foreach (var size in Model.Sizes)
+                {
+                    var sizeId = int.Parse(size.Value);
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="SelectedSizeIds" value="@size.Value" id="size_@size.Value"
+                               @(Model.SelectedSizeIds.Contains(sizeId) ? "checked" : null) />
+                        <label class="form-check-label" for="size_@size.Value">@size.Text</label>
+                    </div>
+                }
+            </div>
+            <span asp-validation-for="SelectedSizeIds" class="text-danger"></span>
+        </div>
+
         @if (!string.IsNullOrWhiteSpace(Model.ExistingImageUrl))
         {
             <div class="col-md-4">

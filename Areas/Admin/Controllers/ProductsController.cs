@@ -37,6 +37,11 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ProductFormViewModel vm)
     {
+        if (!vm.SelectedSizeIds.Any())
+        {
+            ModelState.AddModelError(nameof(ProductFormViewModel.SelectedSizeIds), "Select at least one available size.");
+        }
+
         if (!ModelState.IsValid)
         {
             await PopulateLookups(vm);
@@ -59,6 +64,16 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
         dbContext.Products.Add(product);
         await dbContext.SaveChangesAsync();
 
+        foreach (var sizeId in vm.SelectedSizeIds.Distinct())
+        {
+            dbContext.ProductSizes.Add(new ProductSize
+            {
+                ProductId = product.Id,
+                SizeId = sizeId,
+                QuantityInStock = vm.StockQuantity
+            });
+        }
+
         var imageUrl = await SaveImageAsync(vm.ImageFile);
         if (imageUrl == "__INVALID__")
         {
@@ -74,8 +89,9 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
                 ImageUrl = imageUrl,
                 IsPrimary = true
             });
-            await dbContext.SaveChangesAsync();
         }
+
+        await dbContext.SaveChangesAsync();
 
         TempData["Success"] = "Product created successfully.";
         return RedirectToAction(nameof(Index));
@@ -86,6 +102,7 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
     {
         var product = await dbContext.Products
             .Include(p => p.Images)
+            .Include(p => p.ProductSizes)
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (product is null)
@@ -105,7 +122,8 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
             ClubId = product.ClubId,
             BrandId = product.BrandId,
             CategoryId = product.CategoryId,
-            ExistingImageUrl = product.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+            ExistingImageUrl = product.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl,
+            SelectedSizeIds = product.ProductSizes.Select(ps => ps.SizeId).ToList()
         };
 
         await PopulateLookups(vm);
@@ -116,6 +134,11 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ProductFormViewModel vm)
     {
+        if (!vm.SelectedSizeIds.Any())
+        {
+            ModelState.AddModelError(nameof(ProductFormViewModel.SelectedSizeIds), "Select at least one available size.");
+        }
+
         if (!ModelState.IsValid || vm.Id is null)
         {
             await PopulateLookups(vm);
@@ -124,6 +147,7 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
 
         var product = await dbContext.Products
             .Include(p => p.Images)
+            .Include(p => p.ProductSizes)
             .FirstOrDefaultAsync(p => p.Id == vm.Id.Value);
 
         if (product is null)
@@ -140,6 +164,31 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
         product.ClubId = vm.ClubId;
         product.BrandId = vm.BrandId;
         product.CategoryId = vm.CategoryId;
+
+        var selected = vm.SelectedSizeIds.Distinct().ToHashSet();
+        var existing = product.ProductSizes.Select(ps => ps.SizeId).ToHashSet();
+
+        var toRemove = product.ProductSizes.Where(ps => !selected.Contains(ps.SizeId)).ToList();
+        if (toRemove.Any())
+        {
+            dbContext.ProductSizes.RemoveRange(toRemove);
+        }
+
+        var toAdd = selected.Where(id => !existing.Contains(id)).ToList();
+        foreach (var sizeId in toAdd)
+        {
+            product.ProductSizes.Add(new ProductSize
+            {
+                ProductId = product.Id,
+                SizeId = sizeId,
+                QuantityInStock = vm.StockQuantity
+            });
+        }
+
+        foreach (var productSize in product.ProductSizes)
+        {
+            productSize.QuantityInStock = vm.StockQuantity;
+        }
 
         var imageUrl = await SaveImageAsync(vm.ImageFile);
         if (imageUrl == "__INVALID__")
@@ -202,6 +251,11 @@ public class ProductsController(ApplicationDbContext dbContext, IWebHostEnvironm
         vm.Categories = await dbContext.Categories
             .OrderBy(c => c.Name)
             .Select(c => new SelectListItem(c.Name, c.Id.ToString()))
+            .ToListAsync();
+
+        vm.Sizes = await dbContext.Sizes
+            .OrderBy(s => s.Id)
+            .Select(s => new SelectListItem(s.Name, s.Id.ToString()))
             .ToListAsync();
     }
 

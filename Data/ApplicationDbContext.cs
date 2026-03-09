@@ -84,11 +84,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
 
         builder.Entity<Size>().HasData(
-            new Size { Id = 1, Name = "S" },
-            new Size { Id = 2, Name = "M" },
-            new Size { Id = 3, Name = "L" },
-            new Size { Id = 4, Name = "XL" },
-            new Size { Id = 5, Name = "XXL" }
+            new Size { Id = 1, Name = "Kids" },
+            new Size { Id = 2, Name = "Extra Small" },
+            new Size { Id = 3, Name = "Small" },
+            new Size { Id = 4, Name = "Medium" },
+            new Size { Id = 5, Name = "Large" },
+            new Size { Id = 6, Name = "Extra Large" }
         );
 
         builder.Entity<Club>().HasData(
