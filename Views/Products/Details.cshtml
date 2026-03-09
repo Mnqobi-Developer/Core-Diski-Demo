@@ -44,5 +44,41 @@
                 <button class="btn btn-secondary" disabled>Out of stock</button>
             }
         </div>
+<div class="row g-4">
+    <div class="col-md-5">
+        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" class="img-fluid rounded border" alt="@Model.Name" />
+        }
+        else
+        {
+            <div class="bg-light border rounded d-flex align-items-center justify-content-center" style="height:360px;">No Image</div>
+        }
+    </div>
+    <div class="col-md-7">
+        <h1 class="h3">@Model.Name</h1>
+        <p class="text-muted">@Model.League • @Model.Club • @Model.Brand</p>
+        <p><strong>Type:</strong> @Model.ShirtType | <strong>Category:</strong> @Model.Category | <strong>Season:</strong> @Model.ReleaseSeason</p>
+        <p><strong>Available sizes:</strong> @(Model.Sizes.Any() ? string.Join(", ", Model.Sizes) : "Not specified")</p>
+        <p><strong>Price:</strong> <span class="fs-4 fw-bold">@Model.Price.ToString("C")</span></p>
+        <p class="@(Model.StockQuantity > 0 ? "text-success" : "text-danger")">
+            @(Model.StockQuantity > 0 ? $"In stock ({Model.StockQuantity})" : "Out of stock")
+        </p>
+
+        <p>@Model.Description</p>
+
+        @if (Model.StockQuantity > 0)
+        {
+            <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex gap-2 align-items-center">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="productId" value="@Model.Id" />
+                <input type="number" name="quantity" value="1" min="1" max="@Model.StockQuantity" class="form-control" style="max-width:120px;" />
+                <button class="btn btn-primary">Add to Cart</button>
+            </form>
+        }
+        else
+        {
+            <button class="btn btn-secondary" disabled>Out of stock</button>
+        }
     </div>
 </div>
